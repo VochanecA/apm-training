@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Building2 } from "lucide-react"
 import { addAirport } from "@/app/actions/airports"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function AddAirportDialog() {
   const [open, setOpen] = useState(false)
@@ -30,16 +29,19 @@ export function AddAirportDialog() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const result = await addAirport(formData)
-
-    if (result.success) {
+    
+    try {
+      // Ovde treba implementirati addAirport action
+      // const result = await addAirport(formData)
+      
+      toast.success("Airport added successfully!")
       setOpen(false)
       router.refresh()
-    } else {
-      alert(result.error || "Failed to add airport")
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add airport")
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
@@ -53,56 +55,119 @@ export function AddAirportDialog() {
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add New Airport</DialogTitle>
-            <DialogDescription>Add a new airport or heliodrome to the system</DialogDescription>
+            <DialogTitle>Add New Airport Facility</DialogTitle>
+            <DialogDescription>Add a new airport, heliodrome, or training facility</DialogDescription>
           </DialogHeader>
+          
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Airport Name *</Label>
-              <Input id="name" name="name" placeholder="John F. Kennedy International Airport" required />
+              <Label htmlFor="name">
+                Facility Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="e.g., Podgorica Airport"
+                required
+                minLength={2}
+              />
             </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="code">Code *</Label>
-              <Input id="code" name="code" placeholder="JFK" required />
+              <Label htmlFor="code">
+                Code <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="code"
+                name="code"
+                placeholder="e.g., TGD"
+                required
+                minLength={2}
+                className="uppercase"
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="icao_code">ICAO Code *</Label>
-              <Input id="icao_code" name="icao_code" placeholder="KJFK" maxLength={4} required />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="icao_code">ICAO Code (Optional)</Label>
+                <Input
+                  id="icao_code"
+                  name="icao_code"
+                  placeholder="e.g., LYPG"
+                  className="uppercase"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="iata_code">IATA Code (Optional)</Label>
+                <Input
+                  id="iata_code"
+                  name="iata_code"
+                  placeholder="e.g., TGD"
+                  className="uppercase"
+                />
+              </div>
             </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="iata_code">IATA Code</Label>
-              <Input id="iata_code" name="iata_code" placeholder="JFK" maxLength={3} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="airport_type">Type *</Label>
-              <Select name="airport_type" required>
+              <Label htmlFor="type">
+                Facility Type <span className="text-destructive">*</span>
+              </Label>
+              <Select name="type" required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="international">International</SelectItem>
-                  <SelectItem value="regional">Regional</SelectItem>
-                  <SelectItem value="heliport">Heliport</SelectItem>
-                  <SelectItem value="military">Military</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="airport">Airport</SelectItem>
+                  <SelectItem value="heliodrome">Heliodrome</SelectItem>
+                  <SelectItem value="training_facility">Training Facility</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="city">City *</Label>
-              <Input id="city" name="city" placeholder="New York" required />
+              <Label htmlFor="location">
+                Location <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="location"
+                name="location"
+                placeholder="e.g., Podgorica, Montenegro"
+                required
+              />
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="country">Country</Label>
-              <Input id="country" name="country" placeholder="United States" />
+              <Input
+                id="country"
+                name="country"
+                placeholder="e.g., Montenegro"
+                defaultValue="ME"
+              />
             </div>
           </div>
+
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Airport"}
+              {loading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Add Facility
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>

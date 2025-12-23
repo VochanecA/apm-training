@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plane, GraduationCap, Shield, FileCheck, Users, MapPin } from "lucide-react"
+import { Plane, GraduationCap, Shield, FileCheck, Users, MapPin, Sun, Moon } from "lucide-react"
 import Link from "next/link"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-950">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm">
+      <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
@@ -19,6 +20,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <ModeToggle />
             <Button asChild variant="ghost">
               <Link href="/auth/login">Login</Link>
             </Button>
@@ -58,7 +60,7 @@ export default function HomePage() {
       <section className="container mx-auto px-4 py-16">
         <div className="mb-12 text-center">
           <h3 className="mb-4 text-3xl font-bold text-foreground">Key Features</h3>
-          <p className="text-lg text-muted-foreground">Everything you need for aviation training compliance</p>
+          <p className="text-lg text-muted-foreground">Everything you need for airport training compliance</p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -124,12 +126,12 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-blue-50">
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-blue-50 dark:from-primary/10 dark:to-gray-800">
           <CardHeader className="text-center">
             <CardTitle className="mb-4 text-3xl">Ready to Get Started?</CardTitle>
             <CardContent>
               <p className="mb-6 text-lg text-muted-foreground">
-                Join the aviation training system trusted by Montenegro's leading airports
+                Join the Airport Training Management system trusted by Montenegro's leading airports
               </p>
               <Button asChild size="lg">
                 <Link href="/auth/sign-up">Create Your Account</Link>
@@ -140,7 +142,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-white/80 backdrop-blur-sm">
+      <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
           <p>© 2025 Tivat Airport Training Center. All rights reserved.</p>
           <p className="mt-2">Compliant with Montenegro Civil Aviation Agency regulations</p>

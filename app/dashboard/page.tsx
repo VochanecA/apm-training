@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       {/* Welcome Section */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Welcome back, {profile?.full_name || user.email}</h1>
-        <p className="mt-2 text-muted-foreground">Your aviation training dashboard overview</p>
+        <p className="mt-2 text-muted-foreground">Your Airport Training Management dashboard overview</p>
       </div>
 
       {/* Stats Grid */}

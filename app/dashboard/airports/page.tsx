@@ -28,15 +28,13 @@ export default async function AirportsPage() {
     .order("name")
 
   const getTypeColor = (type: string) => {
-    switch (type) {
-      case "international":
+    switch (type?.toLowerCase()) {
+      case "airport":
         return "bg-blue-500/10 text-blue-600 border-blue-500/20"
-      case "regional":
-        return "bg-green-500/10 text-green-600 border-green-500/20"
-      case "heliport":
+      case "heliodrome":
         return "bg-purple-500/10 text-purple-600 border-purple-500/20"
-      case "military":
-        return "bg-red-500/10 text-red-600 border-red-500/20"
+      case "training_facility":
+        return "bg-green-500/10 text-green-600 border-green-500/20"
       default:
         return "bg-muted text-muted-foreground"
     }
@@ -75,31 +73,31 @@ export default async function AirportsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">International</CardTitle>
+            <CardTitle className="text-sm font-medium">Airports</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {airports?.filter((a) => a.airport_type === "international").length || 0}
+              {airports?.filter((a) => a.type === "airport").length || 0}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Regional</CardTitle>
+            <CardTitle className="text-sm font-medium">Heliodromes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {airports?.filter((a) => a.airport_type === "regional").length || 0}
+              {airports?.filter((a) => a.type === "heliodrome").length || 0}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Heliports</CardTitle>
+            <CardTitle className="text-sm font-medium">Training Facilities</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {airports?.filter((a) => a.airport_type === "heliport").length || 0}
+              {airports?.filter((a) => a.type === "training_facility").length || 0}
             </div>
           </CardContent>
         </Card>
@@ -115,12 +113,13 @@ export default async function AirportsPage() {
                   <div className="flex-1 space-y-1">
                     <CardTitle className="text-lg leading-tight">{airport.name}</CardTitle>
                     <CardDescription className="flex items-center gap-1">
-                      <span className="font-mono">{airport.icao_code}</span>
+                      <span className="font-mono">{airport.code}</span>
+                      {airport.icao_code && <span className="font-mono">/ {airport.icao_code}</span>}
                       {airport.iata_code && <span className="font-mono">/ {airport.iata_code}</span>}
                     </CardDescription>
                   </div>
-                  <Badge className={getTypeColor(airport.airport_type)} variant="outline">
-                    {airport.airport_type.toUpperCase()}
+                  <Badge className={getTypeColor(airport.type)} variant="outline">
+                    {airport.type?.toUpperCase() || "UNKNOWN"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -129,13 +128,13 @@ export default async function AirportsPage() {
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">
-                      {airport.city}
+                      {airport.location}
                       {airport.country && `, ${airport.country}`}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Building2 className="h-4 w-4 flex-shrink-0" />
-                    <span>Code: {airport.code}</span>
+                    <span>Type: {airport.type}</span>
                   </div>
                   {airport.employee_airports && (
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -158,10 +157,9 @@ export default async function AirportsPage() {
               <Building2 className="h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">No airports found</h3>
               <p className="mt-2 text-sm text-muted-foreground">Start by adding your first airport facility</p>
-              <Button className="mt-4" size="sm">
-                <Building2 className="mr-2 h-4 w-4" />
-                Add Airport
-              </Button>
+              <div className="mt-4">
+                <AddAirportDialog />
+              </div>
             </CardContent>
           </Card>
         )}

@@ -47,7 +47,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
             <Plane className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Aviation Training System</h1>
+          <h1 className="text-3xl font-bold text-foreground">Airport Training Management</h1>
           <p className="mt-2 text-sm text-muted-foreground">Tivat Airport Training Center</p>
         </div>
 
