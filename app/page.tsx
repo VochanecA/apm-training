@@ -14,7 +14,7 @@ export default function HomePage() {
               <Plane className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Aviation Training</h1>
+              <h1 className="text-lg font-bold text-foreground">Airport Training Management</h1>
               <p className="text-xs text-muted-foreground">Tivat Airport Training Center</p>
             </div>
           </div>
@@ -37,7 +37,7 @@ export default function HomePage() {
             CAA Montenegro Approved Training Center
           </div>
           <h2 className="mb-6 text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
-            Professional Aviation Safety Training Management
+            Professional Airport Training Management
           </h2>
           <p className="mb-8 text-lg leading-relaxed text-muted-foreground md:text-xl">
             Comprehensive training, certification, and compliance tracking for airport personnel across multiple
