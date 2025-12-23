@@ -59,8 +59,10 @@ export async function addTrainingProgram(formData: FormData): Promise<TrainingPr
       }
     }
 
-    // Convert empty strings to null for optional fields
-    const job_category_id = job_category_id_raw === "" ? null : job_category_id_raw
+    // Convert special values to null for optional fields
+    const job_category_id = 
+      job_category_id_raw === "no-category" || job_category_id_raw === "" ? 
+      null : job_category_id_raw
     
     // Convert hours to numbers, default to 0 if empty
     const theoreticalHoursNum = theoretical_hours ? parseInt(theoretical_hours) : 0
@@ -112,6 +114,7 @@ export async function addTrainingProgram(formData: FormData): Promise<TrainingPr
     }
 
     revalidatePath("/dashboard/trainings")
+    revalidatePath("/dashboard/training-programs")
     
     return {
       success: true,
