@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { BookOpen, Plus } from "lucide-react"
+import { BookOpen, Plus, Calendar } from "lucide-react"
 import { addTrainingProgram, getJobCategories } from "@/app/actions/training-programs"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -188,6 +188,87 @@ export function AddTrainingProgramDialog() {
                   placeholder="0"
                 />
               </div>
+            </div>
+
+            {/* DODANO: Validity Period Section */}
+            <div className="grid gap-2 border-t pt-4">
+              <Label htmlFor="validity_months" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Certificate Validity Period
+              </Label>
+              <Select name="validity_months" defaultValue="24">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select validity period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="6">6 months</SelectItem>
+                  <SelectItem value="12">12 months (1 year)</SelectItem>
+                  <SelectItem value="18">18 months</SelectItem>
+                  <SelectItem value="24">24 months (2 years)</SelectItem>
+                  <SelectItem value="36">36 months (3 years)</SelectItem>
+                  <SelectItem value="48">48 months (4 years)</SelectItem>
+                  <SelectItem value="60">60 months (5 years)</SelectItem>
+                  <SelectItem value="custom">Custom duration</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="hidden" id="custom-validity-container">
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  <div className="grid gap-1">
+                    <Label htmlFor="validity_years" className="text-xs">Years</Label>
+                    <Input
+                      id="validity_years"
+                      name="validity_years"
+                      type="number"
+                      min="0"
+                      max="20"
+                      defaultValue="0"
+                      placeholder="0"
+                      onChange={(e) => {
+                        const years = parseInt(e.target.value) || 0
+                        const months = parseInt(e.target.value) || 0
+                        const totalMonths = (years * 12) + months
+                        document.getElementById('validity_months')?.setAttribute('value', totalMonths.toString())
+                      }}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="validity_months_custom" className="text-xs">Months</Label>
+                    <Input
+                      id="validity_months_custom"
+                      name="validity_months_custom"
+                      type="number"
+                      min="1"
+                      max="11"
+                      defaultValue="0"
+                      placeholder="0"
+                      onChange={(e) => {
+                        const yearsInput = document.getElementById('validity_years') as HTMLInputElement
+                        const years = parseInt(yearsInput.value) || 0
+                        const months = parseInt(e.target.value) || 0
+                        const totalMonths = (years * 12) + months
+                        const selectEl = document.getElementById('validity_months') as HTMLSelectElement
+                        if (selectEl) {
+                          if (totalMonths > 0) {
+                            selectEl.value = totalMonths.toString()
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label className="text-xs">Total</Label>
+                    <Input
+                      readOnly
+                      id="validity_total"
+                      placeholder="0 months"
+                      className="bg-muted"
+                    />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                How long the certificate is valid after successful completion
+              </p>
             </div>
 
             <div className="border-t pt-4">
