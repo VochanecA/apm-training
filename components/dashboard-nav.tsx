@@ -26,6 +26,7 @@ import {
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { useState } from "react"
+import { ModeToggle } from "@/components/mode-toggle" // Dodajte ovaj import
 
 export function DashboardNav() {
   const router = useRouter()
@@ -80,6 +81,9 @@ export function DashboardNav() {
           <Search className="h-5 w-5" />
         </Button>
 
+        {/* Theme Toggle - Dodajte ovdje */}
+        <ModeToggle />
+
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -132,6 +136,10 @@ export function DashboardNav() {
                 </Button>
               )
             })}
+            {/* Dodajte ModeToggle i u mobile menu ako želite */}
+            <div className="mt-4 flex justify-center">
+              <ModeToggle />
+            </div>
           </div>
         </nav>
       )}

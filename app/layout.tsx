@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from 'sonner' // Dodajte ovaj import
 
 const geist = Geist({ 
   subsets: ["latin"],
@@ -47,12 +48,13 @@ export default function RootLayout({
       <body className={`${geist.className} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light" 
-          enableSystem={false}
+          defaultTheme="system"  // Promijenjeno iz "light"
+          enableSystem={true}    // Promijenjeno iz false
           disableTransitionOnChange
         >
           {children}
           <Analytics />
+          <Toaster position="top-right" /> {/* Dodajte ovu liniju */}
         </ThemeProvider>
       </body>
     </html>

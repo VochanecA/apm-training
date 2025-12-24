@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Building2, MapPin, Users, Search, Download } from "lucide-react"
 import Link from "next/link"
 import { AddAirportDialog } from "@/components/add-airport-dialog"
+import { AirportActions } from "@/components/airports/airport-actions"
 
-export default async function AirportsPage() {
+export default async function AirportsPage() {  // OVO JE VAŽNO: AirportsPage, ne AirportDetailsPage
   const supabase = await createClient()
 
   const {
@@ -19,13 +20,18 @@ export default async function AirportsPage() {
   }
 
   // Fetch all airports with employee count
-  const { data: airports } = await supabase
+  const { data: airports, error } = await supabase
     .from("airports")
     .select(`
       *,
       employee_airports(count)
     `)
     .order("name")
+
+  // Dodajte ovo za debugging
+  if (error) {
+    console.error("Error fetching airports list:", error)
+  }
 
   const getTypeColor = (type: string) => {
     switch (type?.toLowerCase()) {

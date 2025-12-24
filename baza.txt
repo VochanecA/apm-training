@@ -1,0 +1,242 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.airports (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  code character varying NOT NULL UNIQUE,
+  name text NOT NULL,
+  type text NOT NULL CHECK (type = ANY (ARRAY['airport'::text, 'heliodrome'::text, 'training_facility'::text])),
+  location text NOT NULL,
+  country character varying DEFAULT 'ME'::character varying,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT airports_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.audit_logs (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  action text NOT NULL,
+  table_name text NOT NULL,
+  record_id uuid,
+  old_data jsonb,
+  new_data jsonb,
+  ip_address inet,
+  user_agent text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT audit_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT audit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.certificates (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  certificate_number character varying NOT NULL UNIQUE,
+  trainee_id uuid NOT NULL,
+  job_category_id uuid NOT NULL,
+  training_id uuid,
+  airport_id uuid NOT NULL,
+  issue_date date NOT NULL,
+  expiry_date date NOT NULL,
+  status text NOT NULL DEFAULT 'valid'::text CHECK (status = ANY (ARRAY['valid'::text, 'expired'::text, 'revoked'::text, 'suspended'::text])),
+  issued_by uuid,
+  theoretical_exam_id uuid,
+  practical_exam_id uuid,
+  qr_code text,
+  pdf_url text,
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT certificates_pkey PRIMARY KEY (id),
+  CONSTRAINT certificates_trainee_id_fkey FOREIGN KEY (trainee_id) REFERENCES public.profiles(id),
+  CONSTRAINT certificates_job_category_id_fkey FOREIGN KEY (job_category_id) REFERENCES public.job_categories(id),
+  CONSTRAINT certificates_training_id_fkey FOREIGN KEY (training_id) REFERENCES public.trainings(id),
+  CONSTRAINT certificates_airport_id_fkey FOREIGN KEY (airport_id) REFERENCES public.airports(id),
+  CONSTRAINT certificates_issued_by_fkey FOREIGN KEY (issued_by) REFERENCES public.profiles(id),
+  CONSTRAINT certificates_theoretical_exam_id_fkey FOREIGN KEY (theoretical_exam_id) REFERENCES public.examinations(id),
+  CONSTRAINT certificates_practical_exam_id_fkey FOREIGN KEY (practical_exam_id) REFERENCES public.examinations(id)
+);
+CREATE TABLE public.commission_members (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  commission_id uuid NOT NULL,
+  member_id uuid NOT NULL,
+  role text CHECK (role = ANY (ARRAY['chairman'::text, 'member'::text, 'secretary'::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT commission_members_pkey PRIMARY KEY (id),
+  CONSTRAINT commission_members_commission_id_fkey FOREIGN KEY (commission_id) REFERENCES public.exam_commissions(id),
+  CONSTRAINT commission_members_member_id_fkey FOREIGN KEY (member_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.employee_airports (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  employee_id uuid NOT NULL,
+  airport_id uuid NOT NULL,
+  is_primary boolean DEFAULT false,
+  start_date date NOT NULL,
+  end_date date,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT employee_airports_pkey PRIMARY KEY (id),
+  CONSTRAINT employee_airports_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.profiles(id),
+  CONSTRAINT employee_airports_airport_id_fkey FOREIGN KEY (airport_id) REFERENCES public.airports(id)
+);
+CREATE TABLE public.exam_commissions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name text NOT NULL,
+  airport_id uuid,
+  chairman_id uuid NOT NULL,
+  approval_number text,
+  approval_date date,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT exam_commissions_pkey PRIMARY KEY (id),
+  CONSTRAINT exam_commissions_airport_id_fkey FOREIGN KEY (airport_id) REFERENCES public.airports(id),
+  CONSTRAINT exam_commissions_chairman_id_fkey FOREIGN KEY (chairman_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.examinations (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  training_id uuid NOT NULL,
+  commission_id uuid NOT NULL,
+  exam_type text NOT NULL CHECK (exam_type = ANY (ARRAY['theoretical'::text, 'practical'::text, 'skill_check'::text])),
+  exam_date date NOT NULL,
+  airport_id uuid NOT NULL,
+  score numeric,
+  max_score numeric DEFAULT 100,
+  pass_threshold numeric DEFAULT 80,
+  passed boolean DEFAULT (score >= pass_threshold),
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT examinations_pkey PRIMARY KEY (id),
+  CONSTRAINT examinations_training_id_fkey FOREIGN KEY (training_id) REFERENCES public.trainings(id),
+  CONSTRAINT examinations_commission_id_fkey FOREIGN KEY (commission_id) REFERENCES public.exam_commissions(id),
+  CONSTRAINT examinations_airport_id_fkey FOREIGN KEY (airport_id) REFERENCES public.airports(id)
+);
+CREATE TABLE public.job_categories (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  code character varying NOT NULL UNIQUE,
+  name_en text NOT NULL,
+  name_me text NOT NULL,
+  requires_certificate boolean DEFAULT true,
+  description text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT job_categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.module_completions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  training_id uuid NOT NULL,
+  module_id uuid NOT NULL,
+  completed_date date NOT NULL,
+  score numeric,
+  passed boolean DEFAULT false,
+  instructor_id uuid,
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT module_completions_pkey PRIMARY KEY (id),
+  CONSTRAINT module_completions_training_id_fkey FOREIGN KEY (training_id) REFERENCES public.trainings(id),
+  CONSTRAINT module_completions_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.training_modules(id),
+  CONSTRAINT module_completions_instructor_id_fkey FOREIGN KEY (instructor_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  email text NOT NULL UNIQUE,
+  full_name text NOT NULL,
+  employee_id character varying UNIQUE,
+  role text NOT NULL CHECK (role = ANY (ARRAY['admin'::text, 'instructor'::text, 'trainee'::text, 'inspector'::text, 'employee'::text])),
+  date_of_birth date,
+  place_of_birth text,
+  nationality character varying DEFAULT 'ME'::character varying,
+  phone text,
+  avatar_url text,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  job_category_id uuid,
+  needs_auth_setup boolean DEFAULT false,
+  invitation_token uuid,
+  invitation_sent_at timestamp with time zone,
+  auth_user_linked_at timestamp with time zone,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_job_category_id_fkey FOREIGN KEY (job_category_id) REFERENCES public.job_categories(id)
+);
+CREATE TABLE public.skill_checks (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  certificate_id uuid NOT NULL,
+  trainee_id uuid NOT NULL,
+  check_date date NOT NULL,
+  due_date date NOT NULL,
+  examiner_id uuid NOT NULL,
+  airport_id uuid NOT NULL,
+  passed boolean DEFAULT false,
+  score numeric,
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT skill_checks_pkey PRIMARY KEY (id),
+  CONSTRAINT skill_checks_certificate_id_fkey FOREIGN KEY (certificate_id) REFERENCES public.certificates(id),
+  CONSTRAINT skill_checks_trainee_id_fkey FOREIGN KEY (trainee_id) REFERENCES public.profiles(id),
+  CONSTRAINT skill_checks_examiner_id_fkey FOREIGN KEY (examiner_id) REFERENCES public.profiles(id),
+  CONSTRAINT skill_checks_airport_id_fkey FOREIGN KEY (airport_id) REFERENCES public.airports(id)
+);
+CREATE TABLE public.training_modules (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  program_id uuid NOT NULL,
+  title text NOT NULL,
+  module_type text NOT NULL CHECK (module_type = ANY (ARRAY['theoretical'::text, 'practical'::text, 'ojt'::text])),
+  duration_hours integer NOT NULL,
+  sequence_number integer NOT NULL,
+  content text,
+  learning_objectives ARRAY,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT training_modules_pkey PRIMARY KEY (id),
+  CONSTRAINT training_modules_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.training_programs(id)
+);
+CREATE TABLE public.training_programs (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text NOT NULL,
+  code character varying NOT NULL UNIQUE,
+  job_category_id uuid,
+  description text,
+  theoretical_hours integer DEFAULT 0,
+  practical_hours integer DEFAULT 0,
+  ojt_hours integer DEFAULT 0,
+  total_hours integer DEFAULT ((theoretical_hours + practical_hours) + ojt_hours),
+  approval_number text,
+  approval_date date,
+  approved_by text,
+  version character varying DEFAULT '1.0'::character varying,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT training_programs_pkey PRIMARY KEY (id),
+  CONSTRAINT training_programs_job_category_id_fkey FOREIGN KEY (job_category_id) REFERENCES public.job_categories(id)
+);
+CREATE TABLE public.training_sessions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  training_id uuid NOT NULL,
+  module_id uuid NOT NULL,
+  session_date date NOT NULL,
+  duration_hours numeric NOT NULL,
+  instructor_id uuid,
+  location text,
+  topics_covered ARRAY,
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT training_sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT training_sessions_training_id_fkey FOREIGN KEY (training_id) REFERENCES public.trainings(id),
+  CONSTRAINT training_sessions_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.training_modules(id),
+  CONSTRAINT training_sessions_instructor_id_fkey FOREIGN KEY (instructor_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.trainings (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  trainee_id uuid NOT NULL,
+  program_id uuid NOT NULL,
+  airport_id uuid NOT NULL,
+  instructor_id uuid,
+  start_date date NOT NULL,
+  end_date date,
+  status text NOT NULL DEFAULT 'in_progress'::text CHECK (status = ANY (ARRAY['scheduled'::text, 'in_progress'::text, 'completed'::text, 'failed'::text, 'cancelled'::text])),
+  completion_percentage integer DEFAULT 0,
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT trainings_pkey PRIMARY KEY (id),
+  CONSTRAINT trainings_trainee_id_fkey FOREIGN KEY (trainee_id) REFERENCES public.profiles(id),
+  CONSTRAINT trainings_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.training_programs(id),
+  CONSTRAINT trainings_airport_id_fkey FOREIGN KEY (airport_id) REFERENCES public.airports(id),
+  CONSTRAINT trainings_instructor_id_fkey FOREIGN KEY (instructor_id) REFERENCES public.profiles(id)
+);
