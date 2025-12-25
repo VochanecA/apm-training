@@ -429,7 +429,7 @@ export default async function DashboardPage() {
               <span className="text-primary font-medium">Alen</span>
               {" • "}
               <a 
-                href="mailto:alen@example.com" 
+                href="mailto:alen.vocanec@apm.co.me" 
                 className="text-primary hover:underline transition-colors"
               >
                 Contact developer
