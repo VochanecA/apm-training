@@ -154,6 +154,8 @@ CREATE TABLE public.profiles (
   invitation_token uuid,
   invitation_sent_at timestamp with time zone,
   auth_user_linked_at timestamp with time zone,
+  qr_code_token uuid,
+  qr_code_last_accessed timestamp with time zone,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_job_category_id_fkey FOREIGN KEY (job_category_id) REFERENCES public.job_categories(id)
 );
