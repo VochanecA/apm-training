@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { GraduationCap, FileText, Users, AlertCircle, CheckCircle, Clock, Building2, BookOpen } from "lucide-react"
+import { GraduationCap, FileText, Users, AlertCircle, CheckCircle, Clock, Building2, BookOpen, Shield, Plane } from "lucide-react"
 import Link from "next/link"
 
 export default async function DashboardPage() {
@@ -242,6 +242,202 @@ export default async function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Footer */}
+      <footer className="border-t bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm mt-20">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid gap-8 md:grid-cols-4 lg:grid-cols-5">
+            <div className="md:col-span-2 lg:col-span-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                  <Plane className="h-6 w-6 text-primary-foreground rotate-45" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">Airport Training Management</h3>
+                  <p className="text-sm text-muted-foreground">Tivat Airport Training Center</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Comprehensive training, certification, and compliance tracking system 
+                for airport personnel. CAA Montenegro approved training center.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Developed by</span>
+                <span className="px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">Alen</span>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Dashboard Links</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <Link 
+                    href="/dashboard/trainings" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Trainings
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/dashboard/certificates" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Certificates
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/dashboard/personnel" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Personnel
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/dashboard/job-categories" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Job Categories
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Resources</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <Link 
+                    href="/api-status" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    API Status
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/documentation" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Documentation
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/help" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/changelog" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Changelog
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Legal</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <Link 
+                    href="/terms" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Terms & Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/privacy" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/cookies" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Cookie Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/compliance" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Compliance
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="my-8 h-px bg-border" />
+
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-sm text-muted-foreground text-center md:text-left">
+              <p>© 2025 Tivat Airport Training Center. All rights reserved.</p>
+              <p className="mt-1 text-xs">
+                Compliant with Montenegro Civil Aviation Agency regulations
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                  <Shield className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-xs text-muted-foreground">CAA Approved</span>
+              </div>
+              
+              <div className="flex gap-4 text-sm">
+                <Link 
+                  href="/terms" 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Terms
+                </Link>
+                <Link 
+                  href="/privacy" 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Privacy
+                </Link>
+                <Link 
+                  href="/contact" 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Contact
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-border/50 text-center">
+            <p className="text-xs text-muted-foreground">
+              Designed and developed with ❤️ by{" "}
+              <span className="text-primary font-medium">Alen</span>
+              {" • "}
+              <a 
+                href="mailto:alen@example.com" 
+                className="text-primary hover:underline transition-colors"
+              >
+                Contact developer
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
