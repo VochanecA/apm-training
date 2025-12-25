@@ -3,9 +3,10 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Calendar, AlertCircle, Download, Search } from "lucide-react"
+import { FileText, Calendar, AlertCircle, Download, Search, Eye, Printer } from "lucide-react"
 import Link from "next/link"
 import { AddCertificateDialog } from "@/components/add-certificate-dialog"
+import { CertificateActions } from "@/components/certificate-actions"
 
 export default async function CertificatesPage() {
   const supabase = await createClient()
@@ -19,7 +20,7 @@ export default async function CertificatesPage() {
   }
 
   // Fetch certificates for the current user
-  const [{ data: certificates }, { data: completedTrainings }] = await Promise.all([
+  const [{ data: certificates }, { data: completedTrainingsData }] = await Promise.all([
     supabase
       .from("certificates")
       .select(`
@@ -38,6 +39,22 @@ export default async function CertificatesPage() {
       `)
       .eq("status", "completed"),
   ])
+
+  // Transform the data for AddCertificateDialog
+  const completedTrainings = (completedTrainingsData || []).map(training => ({
+    id: training.id,
+    trainee: Array.isArray(training.trainee) ? training.trainee[0] : training.trainee,
+    training_program: Array.isArray(training.training_program) ? training.training_program[0] : training.training_program
+  })).filter(training => 
+    training.trainee && 
+    typeof training.trainee === 'object' && 
+    training.trainee.id && 
+    training.trainee.full_name &&
+    training.training_program &&
+    typeof training.training_program === 'object' &&
+    training.training_program.name &&
+    training.training_program.code
+  )
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,7 +93,7 @@ export default async function CertificatesPage() {
             <Download className="mr-2 h-4 w-4" />
             Export All
           </Button>
-          <AddCertificateDialog trainings={completedTrainings || []} />
+          <AddCertificateDialog trainings={completedTrainings} />
         </div>
       </div>
 
@@ -125,61 +142,71 @@ export default async function CertificatesPage() {
       {/* Certificates List */}
       <div className="space-y-4">
         {certificates && certificates.length > 0 ? (
-          certificates.map((certificate) => (
-            <Card key={certificate.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">
-                        {certificate.training?.training_program?.name || "Certificate"}
-                      </CardTitle>
-                      {isExpiringSoon(certificate.expiry_date) && certificate.status === "valid" && (
-                        <AlertCircle className="h-5 w-5 text-amber-600" />
-                      )}
+          certificates.map((certificate) => {
+            const trainingProgram = certificate.training?.training_program
+            const trainingProgramData = Array.isArray(trainingProgram) ? trainingProgram[0] : trainingProgram
+            
+            return (
+              <Card key={certificate.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg">
+                          {trainingProgramData?.name || "Certificate"}
+                        </CardTitle>
+                        {isExpiringSoon(certificate.expiry_date) && certificate.status === "valid" && (
+                          <AlertCircle className="h-5 w-5 text-amber-600" />
+                        )}
+                      </div>
+                      <CardDescription>Certificate #: {certificate.certificate_number}</CardDescription>
                     </div>
-                    <CardDescription>Certificate #: {certificate.certificate_number}</CardDescription>
+                    <Badge className={getStatusColor(certificate.status)} variant="outline">
+                      {certificate.status.toUpperCase()}
+                    </Badge>
                   </div>
-                  <Badge className={getStatusColor(certificate.status)} variant="outline">
-                    {certificate.status.toUpperCase()}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Issued: {new Date(certificate.issue_date).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Expires: {new Date(certificate.expiry_date).toLocaleDateString()}</span>
-                  </div>
-                  {certificate.training?.training_program?.code && (
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <FileText className="h-4 w-4" />
-                      <span>Code: {certificate.training.training_program.code}</span>
+                      <Calendar className="h-4 w-4" />
+                      <span>Issued: {new Date(certificate.issue_date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Expires: {new Date(certificate.expiry_date).toLocaleDateString()}</span>
+                    </div>
+                    {trainingProgramData?.code && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <FileText className="h-4 w-4" />
+                        <span>Code: {trainingProgramData.code}</span>
+                      </div>
+                    )}
+                  </div>
+                  {isExpiringSoon(certificate.expiry_date) && certificate.status === "valid" && (
+                    <div className="mt-3 flex items-center gap-2 rounded-md bg-amber-500/10 p-3 text-sm text-amber-600">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>This certificate expires in less than 90 days. Please renew soon.</span>
                     </div>
                   )}
-                </div>
-                {isExpiringSoon(certificate.expiry_date) && certificate.status === "valid" && (
-                  <div className="mt-3 flex items-center gap-2 rounded-md bg-amber-500/10 p-3 text-sm text-amber-600">
-                    <AlertCircle className="h-4 w-4" />
-                    <span>This certificate expires in less than 90 days. Please renew soon.</span>
+                  
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <Button asChild variant="outline" size="sm" className="flex-1 sm:flex-none bg-transparent">
+                      <Link href={`/dashboard/certificates/${certificate.id}`}>View Details</Link>
+                    </Button>
+                    
+                    {/* Certificate Actions */}
+                    <CertificateActions
+                      certificateId={certificate.id}
+                      certificateNumber={certificate.certificate_number}
+                      hasPDF={!!certificate.pdf_url}
+                      pdfUrl={certificate.pdf_url || undefined}
+                    />
                   </div>
-                )}
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <Button asChild variant="outline" size="sm" className="flex-1 sm:flex-none bg-transparent">
-                    <Link href={`/dashboard/certificates/${certificate.id}`}>View Details</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1 sm:flex-none bg-transparent">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            )
+          })
         ) : (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">

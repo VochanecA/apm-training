@@ -33,6 +33,7 @@ import { format, isAfter, parseISO } from "date-fns"
 import { getQRCode, generateQRCode } from "@/app/actions/qr-codes"
 import { createClient } from "@/lib/supabase/client"
 import QRCodeDisplay from "@/components/qr-code-display"
+import { CertificateActions } from "@/components/certificate-actions"
 
 interface PersonnelData {
   id: string
@@ -840,9 +841,17 @@ export default function PersonnelProfilePage() {
                               </p>
                             )}
                           </div>
-                          <Button variant="ghost" size="sm">
-                            View Details
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm">
+                              View Details
+                            </Button>
+                            {/* Dodati CertificateActions za završene treninge */}
+                            {training.status === "completed" && (
+                              <CertificateActions
+                                trainingId={training.id}
+                                onCertificateGenerated={loadData} certificateId={""}                              />
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

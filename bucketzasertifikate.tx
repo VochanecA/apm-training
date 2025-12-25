@@ -1,0 +1,15 @@
+Moja  trenutna konfiguracija je dovoljna:
+
+✅ Bucket kreiran: certificates
+
+✅ Public bucket: Da (tako da možete pristupiti PDF-ovima bez autentifikacije)
+
+✅ Folder kreiran: pdfs/
+
+Moj bucket je spreman za rad!
+
+Sada kada koristim addCertificate akciju sa PDF upload-om ili uploadExistingCertificate, PDF će se automatski snimiti u Supabase Storage u folderu pdfs/, i URL će biti sačuvan u bazi podataka.
+
+Napomena: Kako je bucket public, možete direktno pristupiti PDF-ovima putem URL-a koji izgleda otprilike ovako:
+
+https://[your-project-id].supabase.co/storage/v1/object/public/certificates/pdfs/[filename].pdf
