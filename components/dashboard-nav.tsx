@@ -22,11 +22,12 @@ import {
   User,
   LogOut,
   Search,
+  Briefcase,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { useState } from "react"
-import { ModeToggle } from "@/components/mode-toggle" // Dodajte ovaj import
+import { ModeToggle } from "@/components/mode-toggle"
 
 export function DashboardNav() {
   const router = useRouter()
@@ -45,6 +46,7 @@ export function DashboardNav() {
     { href: "/dashboard/trainings", label: "Trainings", icon: GraduationCap },
     { href: "/dashboard/certificates", label: "Certificates", icon: FileText },
     { href: "/dashboard/personnel", label: "Personnel", icon: Users },
+    { href: "/dashboard/job-categories", label: "Job Categories", icon: Briefcase },
     { href: "/dashboard/airports", label: "Airports", icon: Building2 },
     { href: "/dashboard/exams", label: "Examinations", icon: ClipboardCheck },
   ]
@@ -64,7 +66,7 @@ export function DashboardNav() {
         <nav className="ml-auto hidden items-center gap-1 md:flex">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
             return (
               <Button key={item.href} asChild variant={isActive ? "secondary" : "ghost"} size="sm">
                 <Link href={item.href}>
@@ -81,7 +83,7 @@ export function DashboardNav() {
           <Search className="h-5 w-5" />
         </Button>
 
-        {/* Theme Toggle - Dodajte ovdje */}
+        {/* Theme Toggle */}
         <ModeToggle />
 
         {/* User Menu */}
@@ -120,7 +122,7 @@ export function DashboardNav() {
           <div className="flex flex-col gap-2">
             {navItems.map((item) => {
               const Icon = item.icon
-              const isActive = pathname === item.href
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
               return (
                 <Button
                   key={item.href}
@@ -136,7 +138,6 @@ export function DashboardNav() {
                 </Button>
               )
             })}
-            {/* Dodajte ModeToggle i u mobile menu ako želite */}
             <div className="mt-4 flex justify-center">
               <ModeToggle />
             </div>

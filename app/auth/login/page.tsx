@@ -106,7 +106,7 @@ export default function LoginPage() {
               )}
 
               <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-md" disabled={isLoading}>
-                {isLoading ? "Authenticating..." : "Sign In to Terminal"}
+                {isLoading ? "Authenticating..." : "Sign In to Training Management"}
               </Button>
 
               <p className="text-center text-sm text-slate-400 pt-2">
