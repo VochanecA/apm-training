@@ -48,6 +48,8 @@ CREATE TABLE public.certificates (
   notes text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  variant_id uuid,
+  next_renewal_date date,
   CONSTRAINT certificates_pkey PRIMARY KEY (id),
   CONSTRAINT certificates_trainee_id_fkey FOREIGN KEY (trainee_id) REFERENCES public.profiles(id),
   CONSTRAINT certificates_job_category_id_fkey FOREIGN KEY (job_category_id) REFERENCES public.job_categories(id),
@@ -55,7 +57,8 @@ CREATE TABLE public.certificates (
   CONSTRAINT certificates_airport_id_fkey FOREIGN KEY (airport_id) REFERENCES public.airports(id),
   CONSTRAINT certificates_issued_by_fkey FOREIGN KEY (issued_by) REFERENCES public.profiles(id),
   CONSTRAINT certificates_theoretical_exam_id_fkey FOREIGN KEY (theoretical_exam_id) REFERENCES public.examinations(id),
-  CONSTRAINT certificates_practical_exam_id_fkey FOREIGN KEY (practical_exam_id) REFERENCES public.examinations(id)
+  CONSTRAINT certificates_practical_exam_id_fkey FOREIGN KEY (practical_exam_id) REFERENCES public.examinations(id),
+  CONSTRAINT certificates_variant_id_fkey FOREIGN KEY (variant_id) REFERENCES public.training_program_variants(id)
 );
 CREATE TABLE public.commission_members (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -190,6 +193,26 @@ CREATE TABLE public.training_modules (
   CONSTRAINT training_modules_pkey PRIMARY KEY (id),
   CONSTRAINT training_modules_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.training_programs(id)
 );
+CREATE TABLE public.training_program_variants (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  program_id uuid NOT NULL,
+  variant_type text NOT NULL CHECK (variant_type = ANY (ARRAY['initial'::text, 'recurrent'::text, 'requalification'::text, 'refresher'::text, 'conversion'::text, 'update'::text])),
+  variant_name text NOT NULL,
+  description text,
+  theoretical_hours integer DEFAULT 0 CHECK (theoretical_hours >= 0),
+  practical_hours integer DEFAULT 0 CHECK (practical_hours >= 0),
+  ojt_hours integer DEFAULT 0 CHECK (ojt_hours >= 0),
+  simulation_hours integer DEFAULT 0 CHECK (simulation_hours >= 0),
+  total_hours integer DEFAULT 0 CHECK (total_hours >= 0),
+  validity_months integer DEFAULT 24 CHECK (validity_months >= 1 AND validity_months <= 60),
+  regulation_reference text,
+  authority_approval text,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT training_program_variants_pkey PRIMARY KEY (id),
+  CONSTRAINT training_program_variants_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.training_programs(id)
+);
 CREATE TABLE public.training_programs (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   title text NOT NULL,
@@ -208,8 +231,11 @@ CREATE TABLE public.training_programs (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   validity_months integer DEFAULT 24 CHECK (validity_months > 0),
+  primary_instructor_id uuid,
+  simulation_hours integer DEFAULT 0 CHECK (simulation_hours >= 0),
   CONSTRAINT training_programs_pkey PRIMARY KEY (id),
-  CONSTRAINT training_programs_job_category_id_fkey FOREIGN KEY (job_category_id) REFERENCES public.job_categories(id)
+  CONSTRAINT training_programs_job_category_id_fkey FOREIGN KEY (job_category_id) REFERENCES public.job_categories(id),
+  CONSTRAINT training_programs_primary_instructor_id_fkey FOREIGN KEY (primary_instructor_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.training_sessions (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),

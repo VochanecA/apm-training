@@ -19,7 +19,8 @@ import {
   Building,
   User,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Award
 } from "lucide-react"
 import { TrainingProgramModules } from "@/components/training-program-modules"
 import { TrainingProgramInstructor } from "@/components/training-program-instructor"
@@ -46,7 +47,8 @@ export default async function TrainingProgramDetailPage({
       job_category:job_categories(name_en, name_me, code),
       primary_instructor:profiles!training_programs_primary_instructor_id_fkey(id, full_name, email, role),
       training_modules(id, title, module_type, duration_hours, sequence_number),
-      trainings(id, status, start_date, trainee:profiles!trainings_trainee_id_fkey(full_name))
+      trainings(id, status, start_date, trainee:profiles!trainings_trainee_id_fkey(full_name)),
+      variants:training_program_variants(count)
     `)
     .eq("id", id)
     .single()
@@ -54,6 +56,9 @@ export default async function TrainingProgramDetailPage({
   if (error || !program) {
     notFound()
   }
+
+  // Broj varijanti
+  const totalVariants = program?.variants?.[0]?.count || 0
 
   // Računanje statistike
   const activeTrainings = program.trainings?.filter((t: any) => 
@@ -127,6 +132,11 @@ export default async function TrainingProgramDetailPage({
           <p className="text-muted-foreground mt-1 flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-blue-500" />
             {program.job_category?.name_en || "No job category assigned"}
+            {totalVariants > 0 && (
+              <Badge variant="outline" className="ml-2">
+                {totalVariants} variant{totalVariants !== 1 ? 's' : ''}
+              </Badge>
+            )}
           </p>
         </div>
         
@@ -145,7 +155,7 @@ export default async function TrainingProgramDetailPage({
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Duration</CardTitle>
@@ -194,6 +204,20 @@ export default async function TrainingProgramDetailPage({
             <div className="text-2xl font-bold">{formatValidityPeriod(program.validity_months || 24)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               After successful completion
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Nova kartica za varijante */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Variants</CardTitle>
+            <Award className="h-5 w-5 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{totalVariants}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Initial, recurrent, requalification
             </p>
           </CardContent>
         </Card>
@@ -308,6 +332,13 @@ export default async function TrainingProgramDetailPage({
                 <Link href={`/dashboard/training-programs/${id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Program
+                </Link>
+              </Button>
+              {/* NOVO DUGME ZA VARIJANTE */}
+              <Button asChild className="w-full justify-start" variant="outline">
+                <Link href={`/dashboard/training-programs/${id}/variants`}>
+                  <Award className="mr-2 h-4 w-4" />
+                  Manage Variants
                 </Link>
               </Button>
               <Button className="w-full justify-start" variant="outline">

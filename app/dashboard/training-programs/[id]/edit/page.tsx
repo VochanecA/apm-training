@@ -22,7 +22,8 @@ import {
   User,
   Users,
   Search,
-  X
+  X,
+  Award // DODATO
 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
@@ -328,7 +329,17 @@ export default function EditTrainingProgramPage({
           </p>
         </div>
         
+        {/* AŽURIRANO - Dodato "Manage Variants" dugme */}
         <div className="flex flex-wrap gap-3">
+          <Button 
+            type="button"
+            variant="outline" 
+            onClick={() => router.push(`/dashboard/training-programs/${programId}/variants`)}
+            disabled={saving}
+          >
+            <Award className="mr-2 h-4 w-4" />
+            Manage Variants
+          </Button>
           <Button 
             type="button"
             variant="outline" 
