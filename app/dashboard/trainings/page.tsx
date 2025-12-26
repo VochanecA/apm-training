@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { GraduationCap, Calendar, User, Download, Search, BookOpen } from "lucide-react"
 import Link from "next/link"
 import { AddTrainingDialog } from "@/components/add-training-dialog"
-import { AddTrainingProgramDialog } from "@/components/add-training-program-dialog" // DODATO
+import { AddTrainingProgramDialog } from "@/components/add-training-program-dialog"
 
 export default async function TrainingsPage() {
   const supabase = await createClient()
@@ -25,16 +25,35 @@ export default async function TrainingsPage() {
       .from("trainings")
       .select(`
         *,
-        training_program:training_programs(name, code),
+        training_program:training_programs(title, code),
         instructor:profiles!trainings_instructor_id_fkey(full_name),
         trainee:profiles!trainings_trainee_id_fkey(full_name)
       `)
       .or(`trainee_id.eq.${user.id},instructor_id.eq.${user.id}`)
       .order("start_date", { ascending: false }),
-    supabase.from("training_programs").select("id, name, code").order("name"),
-    supabase.from("profiles").select("id, full_name").eq("role", "employee").order("full_name"),
-    supabase.from("profiles").select("id, full_name").eq("role", "instructor").order("full_name"),
+    supabase
+      .from("training_programs")
+      .select("id, title, code")
+      .eq("is_active", true)
+      .order("title"),
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("role", "employee")
+      .order("full_name"),
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("role", "instructor")
+      .order("full_name"),
   ])
+
+  // Transform programs data for AddTrainingDialog (title -> name)
+  const programsForDialog = programs?.map(p => ({
+    id: p.id,
+    name: p.title,  // Mapiramo title u name
+    code: p.code
+  })) || []
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -68,10 +87,9 @@ export default async function TrainingsPage() {
             <Download className="mr-2 h-4 w-4" />
             Export PDF
           </Button>
-          {/* DODATO: Dugme za dodavanje novog programa */}
           <AddTrainingProgramDialog />
           <AddTrainingDialog 
-            programs={programs || []} 
+            programs={programsForDialog} 
             trainees={trainees || []} 
             instructors={instructors || []} 
           />
@@ -129,11 +147,11 @@ export default async function TrainingsPage() {
               {programs.slice(0, 6).map((program) => (
                 <div key={program.id} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-medium">{program.name}</h4>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium truncate">{program.title}</h4>
                       <p className="text-sm text-muted-foreground">Code: {program.code}</p>
                     </div>
-                    <Badge variant="outline" className="ml-2">
+                    <Badge variant="outline" className="ml-2 shrink-0">
                       Active
                     </Badge>
                   </div>
@@ -173,7 +191,7 @@ export default async function TrainingsPage() {
               <CardHeader>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 space-y-1">
-                    <CardTitle className="text-lg">{training.training_program?.name || "Training"}</CardTitle>
+                    <CardTitle className="text-lg">{training.training_program?.title || "Training"}</CardTitle>
                     <CardDescription>Code: {training.training_program?.code || "N/A"}</CardDescription>
                   </div>
                   <Badge className={getStatusColor(training.status)} variant="outline">
@@ -223,7 +241,7 @@ export default async function TrainingsPage() {
               <div className="mt-4 flex gap-2">
                 <AddTrainingProgramDialog />
                 <AddTrainingDialog 
-                  programs={programs || []} 
+                  programs={programsForDialog} 
                   trainees={trainees || []} 
                   instructors={instructors || []} 
                 />

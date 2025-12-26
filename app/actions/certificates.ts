@@ -5,6 +5,31 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { generateCertificatePDF } from "@/components/pdf-certificate-template"
 
+// Dodajte ovu funkciju u app/actions/certificates.ts
+export async function autoCreateCertificateOnTrainingComplete(trainingId: string) {
+  try {
+    const supabase = await createClient()
+
+    // Proverite da li sertifikat već postoji
+    const { data: existingCertificate } = await supabase
+      .from("certificates")
+      .select("id")
+      .eq("training_id", trainingId)
+      .single()
+
+    if (existingCertificate) {
+      return { success: false, error: "Certificate already exists for this training" }
+    }
+
+    // Kreirajte sertifikat koristeći postojeću funkciju
+    return await createCertificateFromTraining(trainingId)
+  } catch (error: any) {
+    console.error("Error auto-creating certificate:", error)
+    return { success: false, error: error.message }
+  }
+}
+// U app/actions/certificates.ts, pronađite addCertificate funkciju i modifikujte je:
+
 export async function addCertificate(formData: FormData) {
   const supabase = await createClient()
 
@@ -66,39 +91,11 @@ export async function addCertificate(formData: FormData) {
 
     // Handle PDF upload if provided
     if (pdf_file && pdf_file.size > 0) {
-      try {
-        const fileName = `${certificate.id}_${certificate_number.replace(/\s+/g, '_')}.pdf`
-        
-        // Upload to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from('certificates')
-          .upload(`pdfs/${fileName}`, pdf_file, {
-            cacheControl: '3600',
-            upsert: false
-          })
-
-        if (uploadError) {
-          console.error("PDF upload error:", uploadError)
-          // Continue even if upload fails - we can add the PDF later
-        } else {
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('certificates')
-            .getPublicUrl(`pdfs/${fileName}`)
-
-          // Update certificate with PDF URL
-          await supabase
-            .from("certificates")
-            .update({ 
-              pdf_url: publicUrl,
-              pdf_storage_path: `pdfs/${fileName}` 
-            })
-            .eq("id", certificate.id)
-        }
-      } catch (uploadError) {
-        console.error("Error uploading PDF:", uploadError)
-        // Don't fail the whole operation if PDF upload fails
-      }
+      // ... postojeći kod za upload ...
+    } else {
+      // AUTOMATSKA GENERACIJA PDF-a ako nije upload-ovan fajl
+      // Pozovite generateCertificatePDFAction sa novim certificate ID
+      await generateCertificatePDFAction(certificate.id)
     }
 
     revalidatePath("/dashboard/certificates")
@@ -114,7 +111,6 @@ export async function addCertificate(formData: FormData) {
     return { success: false, error: error.message || "Internal server error" }
   }
 }
-
 export async function generateCertificatePDFAction(certificateId: string) {
   try {
     const supabase = await createClient()

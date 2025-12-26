@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { JobCategoryPersonnelTable } from "@/components/job-category-personnel-table"
 import { JobCategoryProgramsTable } from "@/components/job-category-programs-table"
-import { AssignPersonnelToCategoryDialog } from "@/components/assign-personnel-to-category-dialog" // DODAJTE OVAJ IMPORT
+import { AssignPersonnelToCategoryDialogV2 } from "@/components/assign-personnel-to-category-dialog-v2"
 
 export default async function JobCategoryDetailPage({
   params,
@@ -102,17 +102,16 @@ export default async function JobCategoryDetailPage({
         
         <div className="flex flex-wrap gap-3">
           {/* DODAJTE ASSIGN PERSONNEL DIALOG OVDE */}
-          <AssignPersonnelToCategoryDialog
-            jobCategoryId={category.id}
-            jobCategoryName={category.name_en}
-            trigger={
-              <Button variant="outline" size="sm">
-                <Users className="mr-2 h-3 w-3" />
-                Assign Personnel
-              </Button>
-            }
-            onSuccess={() => window.location.reload()}
-          />
+<AssignPersonnelToCategoryDialogV2
+  jobCategoryId={category.id}
+  jobCategoryName={category.name_en}
+  trigger={
+    <Button variant="outline" size="sm">
+      <Users className="mr-2 h-3 w-3" />
+      Assign Personnel
+    </Button>
+  }
+/>
           <Button variant="outline" className="h-10">
             <FileText className="mr-2 h-4 w-4" />
             Export Report
@@ -207,17 +206,16 @@ export default async function JobCategoryDetailPage({
           </CardHeader>
           <CardContent className="space-y-3">
             {/* TAKOĐE DODAJTE I U QUICK ACTIONS SEKCIJI */}
-            <AssignPersonnelToCategoryDialog
-              jobCategoryId={category.id}
-              jobCategoryName={category.name_en}
-              trigger={
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="mr-2 h-4 w-4" />
-                  Assign Personnel
-                </Button>
-              }
-              onSuccess={() => window.location.reload()}
-            />
+<AssignPersonnelToCategoryDialogV2
+  jobCategoryId={category.id}
+  jobCategoryName={category.name_en}
+  trigger={
+    <Button variant="outline" size="sm">
+      <Users className="mr-2 h-3 w-3" />
+      Assign Personnel
+    </Button>
+  }
+/>
             <Button asChild className="w-full justify-start" variant="outline">
               <Link href={`/dashboard/training-programs?category=${id}`}>
                 <GraduationCap className="mr-2 h-4 w-4" />
@@ -245,17 +243,16 @@ export default async function JobCategoryDetailPage({
               </CardTitle>
               <div className="flex items-center gap-2">
                 {/* DODAJTE I OVDE U HEADER SEKCIJI TABELE */}
-                <AssignPersonnelToCategoryDialog
-                  jobCategoryId={category.id}
-                  jobCategoryName={category.name_en}
-                  trigger={
-                    <Button variant="outline" size="sm">
-                      <Users className="mr-2 h-3 w-3" />
-                      Add Personnel
-                    </Button>
-                  }
-                  onSuccess={() => window.location.reload()}
-                />
+    <AssignPersonnelToCategoryDialogV2
+  jobCategoryId={category.id}
+  jobCategoryName={category.name_en}
+  trigger={
+    <Button variant="outline" size="sm">
+      <Users className="mr-2 h-3 w-3" />
+      Assign Personnel
+    </Button>
+  }
+/>
                 <Button asChild size="sm">
                   <Link href={`/dashboard/personnel?category=${id}`}>
                     View All
@@ -284,17 +281,16 @@ export default async function JobCategoryDetailPage({
             <h3 className="text-lg font-semibold">No personnel assigned</h3>
             <p className="text-muted-foreground mb-4">No personnel are currently assigned to this job category.</p>
             {/* DODAJTE I OVDE U EMPTY STATE SEKCIJI */}
-            <AssignPersonnelToCategoryDialog
-              jobCategoryId={category.id}
-              jobCategoryName={category.name_en}
-              trigger={
-                <Button>
-                  <Users className="mr-2 h-4 w-4" />
-                  Assign Personnel
-                </Button>
-              }
-              onSuccess={() => window.location.reload()}
-            />
+<AssignPersonnelToCategoryDialogV2
+  jobCategoryId={category.id}
+  jobCategoryName={category.name_en}
+  trigger={
+    <Button variant="outline" size="sm">
+      <Users className="mr-2 h-3 w-3" />
+      Assign Personnel
+    </Button>
+  }
+/>
           </CardContent>
         </Card>
       )}

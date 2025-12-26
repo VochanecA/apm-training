@@ -1,3 +1,4 @@
+// components/add-training-program-dialog.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,10 +16,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { BookOpen, Plus, Calendar } from "lucide-react"
+import { BookOpen, Plus, Calendar, User, Users } from "lucide-react"
 import { addTrainingProgram, getJobCategories } from "@/app/actions/training-programs"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 
 interface JobCategory {
   id: string
@@ -27,17 +29,62 @@ interface JobCategory {
   code: string
 }
 
+interface Profile {
+  id: string
+  full_name: string
+  email: string
+  role: string
+  is_active: boolean
+}
+
 export function AddTrainingProgramDialog() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([])
+  const [personnel, setPersonnel] = useState<Profile[]>([])
   const [loadingCategories, setLoadingCategories] = useState(false)
-  const router = useRouter()
+  const [loadingPersonnel, setLoadingPersonnel] = useState(false)
+const [formData, setFormData] = useState({
+  title: "",
+  code: "",
+  job_category_id: "no-category",
+  primary_instructor_id: "no-instructor", // Promenjeno iz "" u "no-instructor"
+  description: "",
+  theoretical_hours: "0",
+  practical_hours: "0",
+  ojt_hours: "0",
+  validity_months: "24",
+  approval_number: "",
+  approval_date: "",
+  approved_by: "",
+  version: "1.0"
+})
 
-  // Fetch job categories when dialog opens
+  const router = useRouter()
+  const supabase = createClient()
+
+  // Fetch job categories and personnel when dialog opens
   useEffect(() => {
     if (open) {
       fetchJobCategories()
+      fetchPersonnel()
+    } else {
+      // Reset form when dialog closes
+setFormData({
+  title: "",
+  code: "",
+  job_category_id: "no-category",
+  primary_instructor_id: "no-instructor", // Promenjeno
+  description: "",
+  theoretical_hours: "0",
+  practical_hours: "0",
+  ojt_hours: "0",
+  validity_months: "24",
+  approval_number: "",
+  approval_date: "",
+  approved_by: "",
+  version: "1.0"
+})
     }
   }, [open])
 
@@ -55,23 +102,70 @@ export function AddTrainingProgramDialog() {
     }
   }
 
+  const fetchPersonnel = async () => {
+    setLoadingPersonnel(true)
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, role, is_active")
+        .eq("is_active", true)
+        .order("full_name")
+      
+      if (error) throw error
+      
+      setPersonnel(data || [])
+    } catch (error) {
+      console.error("Error fetching personnel:", error)
+      toast.error("Failed to load personnel")
+    } finally {
+      setLoadingPersonnel(false)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
 
-    const formData = new FormData(e.currentTarget)
-    
     try {
-      const result = await addTrainingProgram(formData)
+      const submitFormData = new FormData()
+      
+      // Add all form values
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== "") {
+          submitFormData.append(key, value.toString())
+        }
+      })
 
+      const result = await addTrainingProgram(submitFormData)
+      
       if (result.success) {
-        toast.success(result.message)
+        toast.success(result.message || "Training program created successfully")
         setOpen(false)
-        router.refresh()
+        
+        setTimeout(() => {
+          window.location.href = "/dashboard/training-programs"
+        }, 500)
+        
       } else {
         toast.error(result.error || "Failed to create training program")
       }
     } catch (error: any) {
+      console.error("Error in handleSubmit:", error)
       toast.error(error.message || "Failed to create training program")
     } finally {
       setLoading(false)
@@ -106,6 +200,8 @@ export function AddTrainingProgramDialog() {
                 placeholder="e.g., Airside Safety Training"
                 required
                 minLength={2}
+                value={formData.title}
+                onChange={handleInputChange}
               />
             </div>
 
@@ -120,20 +216,27 @@ export function AddTrainingProgramDialog() {
                 required
                 minLength={2}
                 className="uppercase"
+                value={formData.code}
+                onChange={handleInputChange}
               />
               <p className="text-xs text-muted-foreground">
                 Unique code for identifying this program
               </p>
             </div>
 
+            {/* Job Category */}
             <div className="grid gap-2">
               <Label htmlFor="job_category_id">Job Category (Optional)</Label>
-              <Select name="job_category_id" disabled={loadingCategories}>
+              <Select 
+                name="job_category_id" 
+                disabled={loadingCategories}
+                value={formData.job_category_id}
+                onValueChange={(value) => handleSelectChange("job_category_id", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={loadingCategories ? "Loading..." : "Select job category"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* Koristimo posebnu vrednost umesto praznog stringa */}
                   <SelectItem value="no-category">No category</SelectItem>
                   {jobCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
@@ -144,6 +247,56 @@ export function AddTrainingProgramDialog() {
               </Select>
             </div>
 
+            {/* Primary Instructor - Bira se iz svih osoblja */}
+
+
+{/* Primary Instructor - Bira se iz svih osoblja */}
+<div className="grid gap-2">
+  <Label htmlFor="primary_instructor_id" className="flex items-center gap-2">
+    <User className="h-4 w-4" />
+    Primary Instructor (Optional)
+  </Label>
+  <Select 
+    name="primary_instructor_id" 
+    disabled={loadingPersonnel}
+    value={formData.primary_instructor_id}
+    onValueChange={(value) => handleSelectChange("primary_instructor_id", value)}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder={loadingPersonnel ? "Loading personnel..." : "Select instructor"} />
+    </SelectTrigger>
+    <SelectContent>
+      {/* Koristite posebnu vrednost umesto praznog stringa */}
+      <SelectItem value="no-instructor">No instructor assigned</SelectItem>
+      {/* Grupišemo osoblje po ulogama */}
+      <SelectItem value="instructors-header" disabled className="font-semibold">
+        Instructors
+      </SelectItem>
+      {personnel
+        .filter(p => p.role === "instructor")
+        .map((person) => (
+          <SelectItem key={person.id} value={person.id}>
+            {person.full_name} ({person.email})
+          </SelectItem>
+        ))}
+      
+      <SelectItem value="other-header" disabled className="font-semibold">
+        Other Personnel
+      </SelectItem>
+      {personnel
+        .filter(p => p.role !== "instructor")
+        .map((person) => (
+          <SelectItem key={person.id} value={person.id}>
+            {person.full_name} ({person.role})
+          </SelectItem>
+        ))}
+    </SelectContent>
+  </Select>
+  <p className="text-xs text-muted-foreground">
+    Select the primary instructor responsible for this program
+  </p>
+</div>
+
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -151,6 +304,8 @@ export function AddTrainingProgramDialog() {
                 name="description"
                 placeholder="Program objectives and overview..."
                 rows={3}
+                value={formData.description}
+                onChange={handleInputChange}
               />
             </div>
 
@@ -162,8 +317,9 @@ export function AddTrainingProgramDialog() {
                   name="theoretical_hours"
                   type="number"
                   min="0"
-                  defaultValue="0"
                   placeholder="0"
+                  value={formData.theoretical_hours}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="grid gap-2">
@@ -173,8 +329,9 @@ export function AddTrainingProgramDialog() {
                   name="practical_hours"
                   type="number"
                   min="0"
-                  defaultValue="0"
                   placeholder="0"
+                  value={formData.practical_hours}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="grid gap-2">
@@ -184,19 +341,24 @@ export function AddTrainingProgramDialog() {
                   name="ojt_hours"
                   type="number"
                   min="0"
-                  defaultValue="0"
                   placeholder="0"
+                  value={formData.ojt_hours}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
 
-            {/* DODANO: Validity Period Section */}
+            {/* Validity Period */}
             <div className="grid gap-2 border-t pt-4">
               <Label htmlFor="validity_months" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Certificate Validity Period
               </Label>
-              <Select name="validity_months" defaultValue="24">
+              <Select 
+                name="validity_months" 
+                value={formData.validity_months}
+                onValueChange={(value) => handleSelectChange("validity_months", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select validity period" />
                 </SelectTrigger>
@@ -208,64 +370,8 @@ export function AddTrainingProgramDialog() {
                   <SelectItem value="36">36 months (3 years)</SelectItem>
                   <SelectItem value="48">48 months (4 years)</SelectItem>
                   <SelectItem value="60">60 months (5 years)</SelectItem>
-                  <SelectItem value="custom">Custom duration</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="hidden" id="custom-validity-container">
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  <div className="grid gap-1">
-                    <Label htmlFor="validity_years" className="text-xs">Years</Label>
-                    <Input
-                      id="validity_years"
-                      name="validity_years"
-                      type="number"
-                      min="0"
-                      max="20"
-                      defaultValue="0"
-                      placeholder="0"
-                      onChange={(e) => {
-                        const years = parseInt(e.target.value) || 0
-                        const months = parseInt(e.target.value) || 0
-                        const totalMonths = (years * 12) + months
-                        document.getElementById('validity_months')?.setAttribute('value', totalMonths.toString())
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="validity_months_custom" className="text-xs">Months</Label>
-                    <Input
-                      id="validity_months_custom"
-                      name="validity_months_custom"
-                      type="number"
-                      min="1"
-                      max="11"
-                      defaultValue="0"
-                      placeholder="0"
-                      onChange={(e) => {
-                        const yearsInput = document.getElementById('validity_years') as HTMLInputElement
-                        const years = parseInt(yearsInput.value) || 0
-                        const months = parseInt(e.target.value) || 0
-                        const totalMonths = (years * 12) + months
-                        const selectEl = document.getElementById('validity_months') as HTMLSelectElement
-                        if (selectEl) {
-                          if (totalMonths > 0) {
-                            selectEl.value = totalMonths.toString()
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label className="text-xs">Total</Label>
-                    <Input
-                      readOnly
-                      id="validity_total"
-                      placeholder="0 months"
-                      className="bg-muted"
-                    />
-                  </div>
-                </div>
-              </div>
               <p className="text-xs text-muted-foreground">
                 How long the certificate is valid after successful completion
               </p>
@@ -280,6 +386,8 @@ export function AddTrainingProgramDialog() {
                     id="approval_number"
                     name="approval_number"
                     placeholder="e.g., APM/2024/001"
+                    value={formData.approval_number}
+                    onChange={handleInputChange}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -289,6 +397,8 @@ export function AddTrainingProgramDialog() {
                       id="approval_date"
                       name="approval_date"
                       type="date"
+                      value={formData.approval_date}
+                      onChange={handleInputChange}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -297,6 +407,8 @@ export function AddTrainingProgramDialog() {
                       id="approved_by"
                       name="approved_by"
                       placeholder="e.g., CAA Montenegro"
+                      value={formData.approved_by}
+                      onChange={handleInputChange}
                     />
                   </div>
                 </div>
@@ -306,7 +418,8 @@ export function AddTrainingProgramDialog() {
                     id="version"
                     name="version"
                     placeholder="1.0"
-                    defaultValue="1.0"
+                    value={formData.version}
+                    onChange={handleInputChange}
                   />
                 </div>
               </div>
